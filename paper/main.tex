@@ -1,0 +1,333 @@
+\documentclass[11pt]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{coling2020}
+\usepackage{times}
+\usepackage{url}
+\usepackage{latexsym}
+\usepackage{amsmath,amsfonts}
+\usepackage{graphicx}
+\usepackage{bbm}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks   = true, %Colours links instead of ugly boxes
+  urlcolor     = blue, %Colour for external hyperlinks
+  linkcolor    = blue, %Colour of internal links
+  citecolor    = blue  %Colour of citations
+}
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% latex functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\ltwo}[1]{\lVert{#1}\rVert}
+\newcommand{\indicator}[1]{\mathbbm{1}\!\left[{#1}\right]}
+\newcommand{\R}{\mathbb R}
+\newcommand{\TEXT}{\texttt{text}}
+
+\newcommand{\defn}[1]{\emph{{#1}}}
+\newcommand{\fixme}[1]{\textbf{FIXME: {#1}}}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\acc}{acc}
+\DeclareMathOperator{\none}{\texttt{None}}
+\DeclareMathOperator{\dataset}{\texttt{RTArticles}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% paper configuration
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\setlength\titlebox{5cm}
+%\colingfinalcopy % Uncomment this line for the final submission
+
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+
+\title{Instructions for COLING-2020 Proceedings}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  {\tt email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  {\tt email@domain} \\}
+
+\date{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% document text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+\begin{abstract}
+\end{abstract}
+
+%
+% The following footnote without marker is needed for the camera-ready
+% version of the paper.
+% Comment out the instructions (first text) and uncomment the 8 lines
+% under "final paper" for your variant of English.
+% 
+\blfootnote{
+    %
+    % for review submission
+    %
+    \hspace{-0.65cm}  % space normally used by the marker
+    Place licence statement here for the camera-ready version. 
+    %
+    % % final paper: en-uk version 
+    %
+    % \hspace{-0.65cm}  % space normally used by the marker
+    % This work is licensed under a Creative Commons 
+    % Attribution 4.0 International Licence.
+    % Licence details:
+    % \url{http://creativecommons.org/licenses/by/4.0/}.
+    % 
+    % % final paper: en-us version 
+    %
+    % \hspace{-0.65cm}  % space normally used by the marker
+    % This work is licensed under a Creative Commons 
+    % Attribution 4.0 International License.
+    % License details:
+    % \url{http://creativecommons.org/licenses/by/4.0/}.
+}
+
+\section{Introduction}
+\label{sec:intro}
+
+Russia Today (RT) is an official newspaper of the Russian government,
+and is one of Russia's primary tools for public diplomacy.
+RT publishes articles written in the Russian language that target the Russian diaspora,
+but RT also publishes articles in Arabic, English, French, German and Spanish that target a non-Russian audience.
+But not all articles published in RT get translated into each language.
+The editors only publish articles in a specific language if those articles will be of interest to speakers of that language.
+The goal of this project is to map which topics get covered in each of these languages.
+
+%Previous work has studied the political bias in English-only RT articles with respect to military expansion in the arctic \cite{bushue2015framing} and the Syrian Civil War \cite{wasuwong2016study}.
+%Wikipedia \cite{hale2014multilinguals,hecht2009measuring,hecht2010tower}
+%\fixme{VOA/BBC \cite{rampal1990credibility}}
+
+\subsection{Contributions}
+
+This paper has 4 distinct contributions.
+
+\begin{enumerate}
+    \item 
+        We introduce the Missing Content Task for information retrieval which is a generalization of the Bitext Retrieval Task to the missing data regime.
+    \item 
+        We provide the first empirical comparison of the multilingual BERT and USE models on both the Bitext Retrieval and Missing Content tasks.
+    \item 
+        We introduce the $\dataset$ dataset for the Missing Content task.
+        This dataset contains newspaper articles published in RT in six different languages.
+    \item 
+        We use the results of the Missing Content task on $\dataset$ to provide the first multilingual analysis of the publication biases of Russian state-owned media.
+\end{enumerate}
+
+\section{Method Overview}
+\label{sec:method}
+
+In this section we introduce the \defn{Missing Content} (MC) Task as a generalization of the \defn{Bitext Retrieval} (BR) Task to the missing data regime.
+BR is a standard task in multilingual document retrieval that is used to measure the quality of multilingual document embeddings, and it has seen significant recent study \cite{}.
+We begin by introducing our notation and formally describing the BR task.
+Then we formally define our MC generalization.
+
+\subsection{Bitext Retrieval (BR) Task}
+
+We are given a corpus of $n$ text documents,
+and each document has a translation into into several different languages.
+Let $C_\ell = \{ c_\ell^1, c_\ell^2, ..., c_\ell^{n} \}$ be the subcorpus for language $\ell$,
+where $c_\ell^i$ is the $i$th document in the corpus translated into language $\ell$.
+In particular, for any document index $i$ and any two languages $\ell$ and $\ell'$,
+the documents $c_{\ell}^i$ and $c_{\ell'}^i$ contain the same text translated into different languages.
+
+The goal of the \defn{Bitext Retrieval} (BR) Task is to use the document corpus for machine translation.
+That is, given a source document $\gamma\in C_\ell$ and target language $\ell'$,
+the goal is to find the document $\gamma' \in C_{\ell'}$ that is a translation of $\gamma$.
+This problem is difficult because the translation function cannot access the document indices and must operate only on the document text.\footnote{%
+In a real problem, the document indices $i$ would be latent parameters of the data,
+and the input corpus would be presented in unsorted order.
+We present the datasets in sorted order with an explicit index for notational convenience only.}
+
+The standard solution to the BR Task uses document embeddings.
+Let $f : \TEXT \to \R^d$ be a function that embeds text into a $d$-dimensional vector space;
+that is, it converts any document $c_\ell^i$ into a vector. 
+A good embedding function function should satisfy two properties.
+First, it should embed similar documents into similar vectors regardless of the documents' languages.
+That is, $f$ should satisfy
+\begin{equation}
+    \ltwo{f(c_{\ell}^i) - f(c_{\ell'}^i)} \approx 0 ~\text{for all}~ \ell,\ell',i
+    .
+\end{equation}
+Second, $f$ should embed dissimilar documents into dissimilar vectors.
+That is, it should satisfy
+\begin{equation}
+    \ltwo{f(c_{\ell}^i) - f(c_{\ell'}^j)} >\!\!> 0 ~\text{for all}~ \ell,\ell',i\ne j
+    .
+\end{equation}
+In our experiments, we use the multilingual BERT \cite{} and USE \cite{} models which are known to satisfy these properties.
+
+To solve the BR Task using document embeddings, we first compute the distance matrix $M$ defined by 
+\begin{equation}
+    \label{eq:M}
+    M_{ij} = \ltwo{ f (c_{\ell}^i) - f(c_{\ell'}^j ) }.
+\end{equation}
+Then for each document $i$ in language $\ell$, we compute its translation by finding the document in language $\ell'$ with minimum distance.
+That is, we compute
+\begin{equation}
+    \label{eq:jhat}
+    \hat j(i) = \argmin_{j\in[n]} M_{ij}
+\end{equation}
+and set the translation of $c_{\ell}^i$ to be $c_{\ell'}^{\hat j(i)}$.
+If $\hat j(i) = i$, then we say the translation is correct,
+otherwise we say the translation is incorrect.
+The overall accuracy of the BR Task is given by
+\begin{equation}
+    \acc_{BR}(\ell,\ell') = \frac 1 n \sum_{i=1}^n \indicator{\hat j(i) = i}
+    .
+\end{equation}
+
+\subsection{Missing Content (MC) Task}
+
+The \defn{Missing Content} (MC) Task is the natural extension of the BR Task to the missing data setting.
+In particular, the MC Task allows each of the input $c_\ell^i$ variables to be either a translation of document $i$ into language $\ell$ or the special value $\none$ if no such translation is provided.
+The goal of the MC Task is then the same as the goal of the BR Task:
+Take an input document $\gamma\in C_\ell$ and target language $\ell'$,
+and output the corresponding value $\gamma' \in C_{\ell'}$.
+In the BR Task, the output $\gamma'$ is guaranteed to be a document,
+but in the MC Task, the output $\gamma'$ may also be the special token $\none$ if no suitable translation is found.
+
+We propose to solve the MC task using a natural generalization of the standard BR algorithm above.
+Calculate the $M$ matrix as
+\begin{equation}
+    M_{ij} = 
+    \begin{cases}
+        \infty & \text{if}~ c_{\ell}^i = \none ~\text{or}~ c_{\ell'}^j=\none \\
+        \ltwo{ f (c_{\ell}^i) - f(c_{\ell'}^j ) } & \text{otherwise}
+    \end{cases}
+\end{equation}
+and calculate
+\begin{equation}
+    \hat j(i) = 
+    \begin{cases}
+        \argmin_{j\in[n]} M_{ij} & \text{if}~ \min_{j\in[n]} M_{ij} < \tau \\
+        \none & \text{otherwise}
+    \end{cases}
+    ,
+\end{equation}
+where $\tau$ is a threshold hyperparameter that controls the trade-off between the precision versus recall of our algorithm.
+
+The generalization of the accuracy to the MC Task is given by
+\begin{equation}
+    \acc_{MC}(\ell,\ell') = \frac 1 n \sum_{i=1}^n \indicator{\hat j(i) = i ~\text{or}~ (\hat j(i) = \none ~\text{and}~ c_\ell^i = \none) }
+    .
+\end{equation}
+
+The choice of $\tau$ is obviously of critical importance,
+and a logical choice of $\tau$ is one that maximizes the accuracy on a held-out validation set.
+
+\fixme{add a discussion of how tau effects the precision/recall of the model.}
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{BR on the UN Dataset}
+
+\begin{table}
+    \centering
+    \includegraphics[height=2in]{example-image-a}
+    \caption{This is the table you've been creating for the UN dataset.}
+\end{table}
+
+\subsection{MC on the UN Dataset}
+
+\begin{figure}
+    \centering
+    \includegraphics[height=2in]{example-image-a}
+    \caption{
+        Plot of the $M_{ij}$ values used to determine the threshold $\tau$ and a ROC curve.
+        To start with, you should plot the distribution of diagonal and off-diagonal points on the same plot, but in different colors.
+        The easiest way to plot an empirical distribution is using the empirical CDF,
+        but a histogram is a bit easier to interpret intuitively.
+        There should be a large separation between these two distributions,
+        and the optimal $\tau$ value is intuitively the location that provides the best separation between these two distributions.
+    }
+\end{figure}
+
+\begin{table}
+    \centering
+    \includegraphics[height=2in]{example-image-a}
+    \caption{Table similar to your BR table but for the MC task}
+\end{table}
+
+\subsection{MC on the Articles Dataset}
+
+
+\begin{table}
+    \centering
+    \includegraphics[height=2in]{example-image-a}
+    \caption{Example article headlines in multiple languages}
+\end{table}
+
+\begin{table}
+    \centering
+    \includegraphics[height=2in]{example-image-a}
+    \caption{Table similar to UN tables but for the Article dataset}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[height=2in]{example-image-a}
+    \caption{Visualization of the document graph for the Article dataset}
+\end{figure}
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Ben}
+
+Very similar to what we want to do: \cite{rupnik2016news,miranda2018multilingual,wang2018estimation,germann2019scalable,seki2018exploring,seki2020cross,linger2020batch}
+
+Brexit case study: \cite{peterlin2019detecting}
+
+Also similar, but involving search terms; probably just good for citations and not techniques: \cite{rupnik2016news}
+
+Multilingual BERT:
+
+\cite{K2020Cross-Lingual}
+
+\cite{pires2019multilingual}
+
+More multilingual models non-BERT from google:
+
+https://ai.googleblog.com/2019/07/multilingual-universal-sentence-encoder.html
+
+https://arxiv.org/abs/1807.11906
+https://arxiv.org/abs/1810.12836
+https://arxiv.org/abs/1902.08564
+https://arxiv.org/abs/1906.08401
+https://arxiv.org/abs/1907.04307
+
+Old survey but good on non deep learning techniques of the era: \cite{oard1998survey}.
+
+\section{Discussion}
+\label{sec:discussion}
+
+
+\bibliographystyle{coling}
+\bibliography{main}
+
+\end{document}
