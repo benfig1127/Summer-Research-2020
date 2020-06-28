@@ -15,7 +15,7 @@ parser_data.add_argument('--lang',type=str)
 parser_data.add_argument('-data_loc_hist',type=str)
 
 parser_model =parser.add_argument_group('model options')
-parser_model.add_argument('--model', choices=['combiner','historgram'],default='combiner')
+parser_model.add_argument('--model', choices=['combiner','histogram'],default='combiner')
 
 args = parser.parse_args()
 
