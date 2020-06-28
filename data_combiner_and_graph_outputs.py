@@ -4,15 +4,16 @@ import glob
 import pickle
 import matplotlib.pyplot as plt 
 import numpy as np 
+import matplotlib
 parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 
 parser_data = parser.add_argument_group('data options')
 parser_data.add_argument('--data_loc',type=str)
-parser_data.add_argument('--data_endings','--list', nargs='+',help='<Required> Set flag', required=True)
+parser_data.add_argument('--data_endings','--list', nargs='+')
 parser_data.add_argument('--save_path',type=str)
 parser_data.add_argument('--lang',type=str)
-parser_data.add_argument('-data_loc_hist',type=str)
+parser_data.add_argument('--data_loc_hist',type=str)
 
 parser_model =parser.add_argument_group('model options')
 parser_model.add_argument('--model', choices=['combiner','histogram'],default='combiner')
@@ -59,12 +60,18 @@ def histogram():
     print('Model:',args.model)
     with open (args.data_loc_hist,'rb') as pickled_file:
         hist_data=pickle.load(pickled_file)
+    try:
+        print('First 10 items',hist_data[:10],'\n')
+    
+    except:
+        print('Items:',hist_data,'\n')
+    
     plt.hist(hist_data,density=True,bins=30)
     plt.ylabel('Distance')
     plt.xlabel('Data')
+    matplotlib.pyplot.show()
     
-
 if args.model=='combiner':
     combiner()
-if args.model='histogram':
+if args.model=='histogram':
     histogram()
