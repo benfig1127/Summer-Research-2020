@@ -6,6 +6,7 @@ parser_debug.add_argument('--device',choices=['auto','cpu','gpu'],default='auto'
 
 parser_data = parser.add_argument_group('data options')
 parser_data.add_argument('--data',type=str)
+parser_data.add_argument('--save_path',type=str)
 parser_data.add_argument('--storage_type',type=str, default='folder')
 parser_data.add_argument('--max_file_length', type=int)
 
@@ -127,15 +128,12 @@ def data_parser():
 						break
 							
 			concat_tensor=torch.cat(tensor_list)
-			file_name=args.data+'/'+os.path.basename(file)+'.bert'
+			file_name=args.save_path+'/'+os.path.basename(file)+'.bert'
 			torch.save(concat_tensor,file_name)	
 			if args.print_tensor:
+				print('Tensor shape:')
 				print(concat_tensor.shape)
+			print('Total lines encoded:')
+			print(line_counter)
 
 data_parser()
-
-
-
-
-
-

@@ -1,0 +1,24 @@
+#!/bin/bash
+# My first script
+lang=es
+declare -a langs=("en" "zh" "fr" "ru" "ab")  
+
+echo "Running script"
+for lang1 in $langs
+do
+	echo $lang1
+	lan="${lang} ${lang1}"
+	echo "${lan}"	
+	save_lan="${lang}_${lang1}"	
+	echo "${save_lan}"
+	for i in 1 2 3 4 5 6 7 8 9 10 
+	do
+		echo $i
+		((x=x+1))
+		nohup python3 -u bert_accuracy_parallel_cdf_calcs.py --data_sliced=/data/bfigueroa20/bert_tensor_saves_sliced/split_tensors --data_full=/data/bfigueroa20/bert_tensor_saves_sliced/full_tensors --file_names --n_smallest_dists=100 --save_outputs --save_path=/home/bfigueroa20/bert_tensor_outputs --print_line_num --langs ${lan} --slice_num=$i &> nohup.$save_lan$i &
+
+	done
+done
+
+
+
