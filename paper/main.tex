@@ -12,6 +12,7 @@
 \usepackage{graphicx}
 \usepackage{bbm}
 \usepackage{hyperref}
+\usepackage{booktabs}
 \hypersetup{
   colorlinks   = true, %Colours links instead of ugly boxes
   urlcolor     = blue, %Colour for external hyperlinks
@@ -109,13 +110,8 @@
 \section{Introduction}
 \label{sec:intro}
 
-Russia Today (RT) is an official newspaper of the Russian government,
-and is one of Russia's primary tools for public diplomacy.
-RT publishes articles written in the Russian language that target the Russian diaspora,
-but RT also publishes articles in Arabic, English, French, German and Spanish that target a non-Russian audience.
-But not all articles published in RT get translated into each language.
-The editors only publish articles in a specific language if those articles will be of interest to speakers of that language.
-The goal of this project is to map which topics get covered in each of these languages.
+
+Research on text retrieval tasks has been pivotal to the Natural Language Processing field, but this work has been focused on singular language comparisons (CITATION NEEDED). This paper will both develop and implement the techniques needed to analyze retrieval tasks in the multilingual case. We examined the Russia Today (RT) newspaper, which is an official newspaper of the Russian government, and is one of Russia's primary tools for public diplomacy. RT publishes articles written in the Russian language that target the Russian diaspora, but RT also publishes articles in Arabic, English, French, German and Spanish that target a non-Russian audience. However, not all articles published in RT are translated into each language. Since the editors only publish articles in a specific language if those articles will be of interest to speakers of that language, we are able to directly examine these differences in content between languages. 
 
 %Previous work has studied the political bias in English-only RT articles with respect to military expansion in the arctic \cite{bushue2015framing} and the Syrian Civil War \cite{wasuwong2016study}.
 %Wikipedia \cite{hale2014multilinguals,hecht2009measuring,hecht2010tower}
@@ -243,20 +239,82 @@ and a logical choice of $\tau$ is one that maximizes the accuracy on a held-out 
 
 \section{Experiments}
 \label{sec:experiments}
+\subsection{The Datasets}
+The United Nations Parallel Corpus \cite{NEED CITATION} is composed of the UN's official public records, hand translated by professional translators into 6 languages: Arabic, English, Spanish, French, Russian, and Chinese. Since, the raw dataset is 65GBs decompressed, we create a subset of the raw dataset due to computation constraints (Corpus subset). We reduce the length of every text file from 13,000,000 lines(FIGURE OUT EXACT NUMBER) to 100,000 lines. Then generate a list of 100,000 uniformly random indices and strip out those indices from every document, ensuring every line in the Corpus Subset matches correctly across all 6 languages. 
 
-\subsection{BR on the UN Dataset}
+From the Corpus subset we create another subset (MC Corpus subset) that has varying numbers of lines removed from the texts. First, fix a 100,000 random values between 0 and 1, then for any given missing content rate we check if the corresponding random value is less than or equal to the given missing content rate and remove the line the input document, otherwise, continue to the next line. This process produces an input document that can have any percentage of missing data. 
 
-\begin{table}
-    \centering
-    \includegraphics[height=2in]{example-image-a}
-    \caption{This is the table you've been creating for the UN dataset.}
-\end{table}
+The Russia Today dataset (RT) contains the newspaper titles for the 6 languages published by Russia Today: English, Russian, German, French, Arabic, and Spanish. "Russia Today" is an official newspaper of the Russian government, and is one of Russia's primary tools for public diplomacy. We can see in Figure x that the amount of articles published in each language varies considerably. This provides a perfect dataset for the Missing Content Task where we can examine the relationship between which languages each article is published in. 
 
-\subsection{MC on the UN Dataset}
+\fixme{Add figure about number of lines in each language}
+
+\subsection{Model Choices}
+For Sentence translation, we test both the BERT\cite{Citation Needed} and the Universal Sentence Encoder (USE) \cite{Citation Needed}. Both models are commonly used in research, but often for differing tasks \cite{Citation Needed}. Directly comparing the two models, BERT supports more languages than USE, 104 to 16 respectively. However, when both models are tested on the Corpus Subset (FIGURE 1) USE clearly outperforms BERT. The large accuracy disparity is likely, in part, due to how each model is trained. BERT is trained on two main tasks, Masked Language and Next Sentence Prediction \cite{Citation Needed}. On the other hand, USE is primarily trained on similarity between sentence pairs \cite{Citation Needed}, which is exactly the task preformed in our experiments. Since USE supports all the languages in both the Corpus Subset and RT there is no downside to choosing USE over BERT, thus we use USE in the Missing Content Tasks. 
+
+
+\subsection{Corpus Subset Experiments}
+A precursor to the Missing Content Task requires that the our sentence translation model is able to accurately compare information in multiple languages. To verify that the USE is suitable for the Missing Content Task we replicate the experiments done by Google \cite{Citation Needed}, instead testing on the introduced Corpus Subset. The results of the Bitext Retrieval task can be seen in Figure 1. The USE model preforms exceptionable on the Corpus Susbset, which implies that the Missing Content Task will contain minimal error due to inaccurate language translations.  
+
+
+
+% \fixme{How we obtained the accuracies? Is that not already stated in the math portion? Need help here, not sure what to write, or is this even a needed section anymore?}
+
+% Take two texts as input, then utilize the Universal Sentence Encoder (USE) (Citation Needed) to embed each line from the texts into a $512$ dimensional vector space. This vector space contains both the semantic and literal meaning of each of the sentences irrespective of the input language. Thus, we are able to compare text embeddings from different languages. While there are several models that can generate word embeddings we found that the USE model was extremely accurate as seen in Figure 1. For testing purposes, we utilize the United Nations Parallel Corpus Dataset (UN Dataset) as it contains texts in 6 different languages that are hand translated by linguists. Since, we know that every line in the Dataset should have near identical word embeddings we can simply calculate a matrix of all possible L2 distances between each line for a given language comparison. Then we verify that the minimum distances in each row of the matrix indeed correspond to the correct line number. These accuraices for each language pair are shown in Figure 1. 
+
+
+\subsection{MC Corpus Subset Experiments}
+After replicating the accuracy of the USE, we test the proposed Missing Content task on the MC Corpus subset to both prove that the Missing Content Task is solvable and to examine how varying $\tau$ affects the trade-off between precision and recall. The results of our testing is shown in Figure 2, displaying the ROC curves of 9 different missing content rates. Every ROC curve shows that there is little trade-off between precision and recall and in particular, even when 90 percent of the data is removed, the USE is still able to accurately predict when the data is missing. Thus, when using the USE, we can minimize any error in the Missing Content task due to language translation mistakes. Furthermore, we prove that their exist environments where the Missing Content task is a solvable. Since the Missing Content task solvable, we are able to propose more than a new benchmarking technique, we are able to extract meaningful analysis about datasets with missing information. 
+
+% Once we determined that the USE model had high enough accuracy, we test the proposed Missing Content task on the MC Corpus subset for varying $\tau$ threshold values. Figure 2 provides an example language comparison ROC curves for varying missing data rates. 
+
+% We show the Missing Content task is solvable by replicating pervious USE experiements done by google on Corpus Subset with very good results. 
+
+% This is extremely important because we can guranteee that the Missing Content Task is solvable, for the languages in the Corpus subset. 
+
+% This extends the missing content task from simply a new cool technique to further benchmarks multilingual encoders towards actually being able to extract usfull information about datasets with missing content. 
+
+
+% Thus we can minimize error in Missing content task due to model translation deficiencies  
+
+
+% notice that even when 90 percent of the data is missing the ROC curves are still good, which implies that the missing Content task can be done even with datasets where some languages have far larger amounts of data than others. 
+
+
+% \fixme{Specifics of why these ROC curves are important}  
+
+
+\subsection{RT Experiments}
+The application of the MC task to datasets that originally contain unknown information can be much more difficult. While the UN Dataset always has a known value for every line in the texts, for the interesting datasets, there likely will be no such baseline to precisely choose an appropriate $\tau$. Consider Russia Today (RT), where there is no easy method to guarantee if a given article in one language exists in the comparison language or is in actuality missing. Thus, the choice of $\tau$ for any particular run will have a large effect on the output of the model. To examine the effect a particular $\tau$ has on the model, we graph the Found Content rate for varying $\tau$ as well as differing decision criteria. The base decision criteria is, for every line in document 1, return "found" if a non zero number of L2 distances between every line in document 2 is less than the particular $\tau$. However, while this approach technically is correct, it inadvertently omits possible insights into the distribution of these matching lines. To fully describe the comparison documents, we simply vary the described decision criteria. 
+
+Let $\tau_0,\tau_1,\tau_2...\tau_i \in (a,b): a,b \in \mathbb{R}$.
+Let $k_0,k_1,k_2...k_j$ be the distance from line $1,2,3...i$ in document 1 to line $1,2,3...j$ in document 2. 
+Let $\gamma$ be the $\sum \forall k$ $:k<\tau$.
+Let $n \in [\alpha,\beta]$ $:\alpha,\beta\in \mathbb{I}$. 
+Then $\forall$ lines in document 1 the decision criteria is given by:
+
+\begin{center}
+\[   \left\{
+\begin{array}{ll}
+      Found & \gamma=n \\
+      Missing & otherwise \\
+\end{array} 
+\right. \]
+\end{center}    
+For every $n$ now obtain a graph of the Found Content rate $\forall \tau \in (a,b)$. For illustration purposes we fix $\n \in [0,9]$, see Figure 3.    
+
+\fixme{Why we care:
+provides another way models can be tested vs each other
+can specifically identify when and where content is missing from two comparison documents 
+}
+
+\fixme{Add section about an example of an interesting missing content as well as consider adding the TSNE-figure}
+
+   
 
 \begin{figure}
     \centering
-    \includegraphics[height=2in]{example-image-a}
+    \includegraphics[height=2in]{recall_precision_first_test_zoomed.png}
+    \includegraphics[height=2in]{recall_precision_first_test_zoomed.png}
     \caption{
         Plot of the $M_{ij}$ values used to determine the threshold $\tau$ and a ROC curve.
         To start with, you should plot the distribution of diagonal and off-diagonal points on the same plot, but in different colors.
@@ -269,12 +327,10 @@ and a logical choice of $\tau$ is one that maximizes the accuracy on a held-out 
 
 \begin{table}
     \centering
-    \includegraphics[height=2in]{example-image-a}
-    \caption{Table similar to your BR table but for the MC task}
+    \includegraphics[height=2in]{fr_en_un_equal_to.png}
+    \includegraphics[height=2in]{fr_en_equal_to.png}
+    \caption{RT and UN missing Content example, Left:UN, Right:RT}
 \end{table}
-
-\subsection{MC on the Articles Dataset}
-
 
 \begin{table}
     \centering
@@ -296,38 +352,56 @@ and a logical choice of $\tau$ is one that maximizes the accuracy on a held-out 
 
 \section{Related Work}
 \label{sec:related}
+% \begin{table}
+%     \begin{tabular}{llllll}
+%     \centering
+% \toprule
+% {} &    es &    ru &    fr &    zh &    en \\
+% \midrule
+% es &  100\% &   63\% &   74\% &   22\% &   74\% \\
+% ru &   70\% &  100\% &   78\% &   27\% &   56\% \\
+% fr &   80\% &   67\% &  100\% &   26\% &   81\% \\
+% zh &   28\% &   27\% &   33\% &  100\% &   32\% \\
+% en &   55\% &   37\% &   65\% &   16\% &  100\% \\
+% \bottomrule
+%     \caption{This is the table you've been creating for the UN dataset.}
+% \end{tabular}
 
-\subsection{Ben}
-
-Very similar to what we want to do: \cite{rupnik2016news,miranda2018multilingual,wang2018estimation,germann2019scalable,seki2018exploring,seki2020cross,linger2020batch}
-
-Brexit case study: \cite{peterlin2019detecting}
-
-Also similar, but involving search terms; probably just good for citations and not techniques: \cite{rupnik2016news}
-
-Multilingual BERT:
-
-\cite{K2020Cross-Lingual}
-
-\cite{pires2019multilingual}
-
-More multilingual models non-BERT from google:
-
-https://ai.googleblog.com/2019/07/multilingual-universal-sentence-encoder.html
-
-https://arxiv.org/abs/1807.11906
-https://arxiv.org/abs/1810.12836
-https://arxiv.org/abs/1902.08564
-https://arxiv.org/abs/1906.08401
-https://arxiv.org/abs/1907.04307
-
-Old survey but good on non deep learning techniques of the era: \cite{oard1998survey}.
-
-\section{Discussion}
-\label{sec:discussion}
+% \end{table}
 
 
-\bibliographystyle{coling}
-\bibliography{main}
+
+% \subsection{Ben}
+
+% Very similar to what we want to do: \cite{rupnik2016news,miranda2018multilingual,wang2018estimation,germann2019scalable,seki2018exploring,seki2020cross,linger2020batch}
+
+% Brexit case study: \cite{peterlin2019detecting}
+
+% Also similar, but involving search terms; probably just good for citations and not techniques: \cite{rupnik2016news}
+
+% Multilingual BERT:
+
+% \cite{K2020Cross-Lingual}
+
+% \cite{pires2019multilingual}
+
+% More multilingual models non-BERT from google:
+
+% https://ai.googleblog.com/2019/07/multilingual-universal-sentence-encoder.html
+
+% https://arxiv.org/abs/1807.11906
+% https://arxiv.org/abs/1810.12836
+% https://arxiv.org/abs/1902.08564
+% https://arxiv.org/abs/1906.08401
+% https://arxiv.org/abs/1907.04307
+
+% Old survey but good on non deep learning techniques of the era: \cite{oard1998survey}.
+
+% \section{Discussion}
+% \label{sec:discussion}
+
+
+% \bibliographystyle{coling}
+% \bibliography{main}
 
 \end{document}
